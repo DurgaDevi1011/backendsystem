@@ -1,26 +1,40 @@
+
 const express = require('express');
+const inspector = require('inspector');
 const cors = require('cors');
+
+var ItemRouter = require('./routes/itemsRoute');
+const { DB_URI } = require("./config");
+
 let morgan = require('morgan');
 let config = require('config'); //we load the db location from the JSON files
 var bodyParser = require('body-parser');
-var ItemRouter = require('./routes/itemsRoute');
-const { DB_URI } = require("./config");
+
+//db options
+let options = { 
+  useNewUrlParser: true,
+       }; 
+
 // create express app
 const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+const multer = require('multer');
+app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+app.use(bodyParser.json({ limit: '50mb' }));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
 app.use('/items', ItemRouter);
 // Configuring the database
+
 const mongoose = require('mongoose');
 mongoose.set('useCreateIndex', true)
 mongoose.Promise = global.Promise;
 
 // Connecting to the database
-mongoose.connect(DB_URI,{ 
-  useNewUrlParser: true,
-       }).then(() => {
+mongoose.connect(DB_URI,options).then(() => {
   console.log("Successfully connected to the database");
 }).catch(err => {
   console.log('Could not connect to the database. Exiting now...', err);
@@ -39,4 +53,5 @@ app.listen(3002, () => {
 });
 
 module.exports = app;
+
 
